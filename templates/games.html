@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Games{% endblock %}
+{% block content %}
+  <h2 class="mb-3">Games</h2>
+  <div class="row g-3">
+    {% for g in games %}
+      <div class="col-md-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">{{ g.title }}</h5>
+            <p class="card-text">
+              {% if g.local %}
+                <a class="btn btn-sm btn-outline-primary me-2" href="{{ g.path }}" target="_blank">Play (new tab)</a>
+                <a class="btn btn-sm btn-primary" href="{{ url_for('play_game', slug=g.slug) }}">Play embedded</a>
+              {% else %}
+                <a class="btn btn-sm btn-primary" href="{{ g.embed_url }}" target="_blank">External embed</a>
+              {% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endblock %}
+
+

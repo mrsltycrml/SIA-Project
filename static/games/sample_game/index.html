@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Sample Game</title></head>
+  <body>
+    <h3>Simple HTML5 Game Demo</h3>
+    <p>Move the square with arrow keys.</p>
+    <canvas id="c" width="600" height="400" style="border:1px solid #ccc"></canvas>
+    <script>
+      const canvas = document.getElementById('c');
+      const ctx = canvas.getContext('2d');
+      let x=50,y=50;
+      window.addEventListener('keydown', e=>{
+        if(e.key === 'ArrowLeft') x -= 10;
+        if(e.key === 'ArrowRight') x += 10;
+        if(e.key === 'ArrowUp') y -= 10;
+        if(e.key === 'ArrowDown') y += 10;
+      });
+      function loop(){
+        ctx.clearRect(0,0,600,400);
+        ctx.fillStyle='crimson';
+        ctx.fillRect(x,y,40,40);
+        requestAnimationFrame(loop);
+      }
+      loop();
+    </script>
+  </body>
+</html>
+
+

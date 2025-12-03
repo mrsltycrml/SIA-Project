@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Videos{% endblock %}
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Videos</h2>
+    <form class="d-flex" method="get">
+      <input class="form-control me-2" name="q" placeholder="Search videos" value="{{ query }}" />
+      <button class="btn btn-outline-primary" type="submit">Search</button>
+    </form>
+  </div>
+
+  {% if results %}
+    <div class="row g-3">
+      {% for v in results %}
+        <div class="col-md-6">
+          <div class="card h-100">
+            <div class="card-body">
+              <h5 class="card-title">{{ v.title }}</h5>
+              <div class="ratio ratio-16x9 mt-2">
+                <iframe src="{{ v.embed_url }}" title="{{ v.title }}" allowfullscreen frameborder="0"></iframe>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">No results. Try searching for a topic or channel.</p>
+  {% endif %}
+{% endblock %}
+
+
