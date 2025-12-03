@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Python Entertainment System (Flask)
 
 - Features:
@@ -87,3 +88,7 @@ Security note:
 - The scripts rely on `git` for pushing. For non-interactive authentication prefer `gh auth login` (GitHub CLI) or configure a credential helper; avoid embedding PATs directly in URLs.
 
 
+=======
+# SIA-Project
+Entertainment System: Movies, Music and Games
+>>>>>>> 7d59457139f07bba53c059d769b978dab1afecf0
