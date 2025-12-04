@@ -590,13 +590,13 @@ class MusicPage(QtWidgets.QWidget):
         buttons_layout.setSpacing(16)
         
         self.prev_btn = QtWidgets.QPushButton("⏮")
-        self.prev_btn.setFixedSize(32, 32)
+        self.prev_btn.setFixedSize(48, 48)
         self.prev_btn.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
                 color: #b3b3b3;
                 border: none;
-                font-size: 20px;
+                font-size: 28px;
             }
             QPushButton:hover {
                 color: #ffffff;
@@ -605,14 +605,14 @@ class MusicPage(QtWidgets.QWidget):
         self.prev_btn.clicked.connect(self.play_previous)
         
         self.play_pause_btn = QtWidgets.QPushButton("▶")
-        self.play_pause_btn.setFixedSize(40, 40)
+        self.play_pause_btn.setFixedSize(64, 64)
         self.play_pause_btn.setStyleSheet("""
             QPushButton {
                 background-color: #ffffff;
                 color: #000000;
                 border: none;
-                border-radius: 20px;
-                font-size: 16px;
+                border-radius: 32px;
+                font-size: 24px;
             }
             QPushButton:hover {
                 background-color: #1ed760;
@@ -623,13 +623,13 @@ class MusicPage(QtWidgets.QWidget):
         self.play_pause_btn.clicked.connect(self.toggle_play_pause)
         
         self.next_btn = QtWidgets.QPushButton("⏭")
-        self.next_btn.setFixedSize(32, 32)
+        self.next_btn.setFixedSize(48, 48)
         self.next_btn.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
                 color: #b3b3b3;
                 border: none;
-                font-size: 20px;
+                font-size: 28px;
             }
             QPushButton:hover {
                 color: #ffffff;
@@ -886,7 +886,7 @@ class VideosPage(QtWidgets.QWidget):
 
         # Header with larger title
         title_row = QtWidgets.QHBoxLayout()
-        title = QtWidgets.QLabel("📺 TV Channels")
+        title = QtWidgets.QLabel("📺 SIA Channels")
         title.setStyleSheet("font-size: 36px; font-weight: 700; color: #ffffff;")
         title_row.addWidget(title)
         title_row.addStretch(1)
@@ -1038,7 +1038,7 @@ class VideosPage(QtWidgets.QWidget):
         try:
             # Load countries
             countries = videos.get_available_countries()
-            for country in countries[:100]:  # Limit to first 100 countries
+            for country in countries:  # Show all countries
                 display_text = f"{country['name']} ({country['code']})"
                 self.country_combo.addItem(display_text, country['code'])
             
@@ -1242,9 +1242,11 @@ class VideosPage(QtWidgets.QWidget):
         
         main_layout.addWidget(player_container, 3)  # Give player 3x space
         
-        # Bottom section with channel info and related channels (scrollable)
+        # Bottom section with channel info and related channels (single scroll)
         bottom_scroll = QtWidgets.QScrollArea()
         bottom_scroll.setWidgetResizable(True)
+        bottom_scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        bottom_scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         bottom_scroll.setStyleSheet("""
             QScrollArea {
                 border: none;
@@ -1280,7 +1282,13 @@ class VideosPage(QtWidgets.QWidget):
         related_label.setStyleSheet("font-size: 22px; font-weight: 600; color: #ffffff; padding: 8px 0;")
         bottom_layout.addWidget(related_label)
         
-        # Scrollable related channels
+        # Horizontal scrollable related channels (no nested scroll)
+        self.related_widget = QtWidgets.QWidget()
+        self.related_layout = QtWidgets.QHBoxLayout(self.related_widget)
+        self.related_layout.setContentsMargins(0, 0, 0, 0)
+        self.related_layout.setSpacing(16)
+        
+        # Use QScrollArea only for horizontal scrolling of related channels
         related_scroll = QtWidgets.QScrollArea()
         related_scroll.setWidgetResizable(True)
         related_scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
@@ -1291,12 +1299,8 @@ class VideosPage(QtWidgets.QWidget):
                 background-color: transparent;
             }
         """)
-        
-        self.related_widget = QtWidgets.QWidget()
-        self.related_layout = QtWidgets.QHBoxLayout(self.related_widget)
-        self.related_layout.setContentsMargins(0, 0, 0, 0)
-        self.related_layout.setSpacing(16)
         related_scroll.setWidget(self.related_widget)
+        related_scroll.setFixedHeight(360)  # Fixed height to prevent vertical scroll
         
         bottom_layout.addWidget(related_scroll)
         bottom_scroll.setWidget(bottom_section)
@@ -1538,71 +1542,36 @@ class VideosPage(QtWidgets.QWidget):
         return card_widget
     
     def _create_related_channel_card(self, channel: dict) -> QtWidgets.QWidget:
-        """Create a smaller channel card for the related channels section."""
+        """Create a smaller channel card for the related channels section (text only, no logo)."""
         card_widget = QtWidgets.QWidget()
         card_widget.setCursor(QtCore.Qt.PointingHandCursor)
         card_widget.setStyleSheet(
             """
             QWidget {
-                background-color: transparent;
+                background-color: rgba(255, 255, 255, 0.1);
                 border-radius: 8px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
             }
             QWidget:hover {
-                background-color: rgba(255, 255, 255, 0.05);
+                background-color: rgba(255, 255, 255, 0.2);
+                border-color: #1ed760;
             }
             """
         )
         v = QtWidgets.QVBoxLayout(card_widget)
-        v.setContentsMargins(8, 8, 8, 8)
+        v.setContentsMargins(16, 16, 16, 16)
         v.setSpacing(8)
-
-        # Smaller container for related channels
-        poster_container = QtWidgets.QWidget()
-        poster_container.setFixedSize(200, 300)
-        poster_container.setStyleSheet("background-color: #1a1a1a; border-radius: 8px;")
         
         def play_channel():
             self.show_player(channel)
-        poster_container.mousePressEvent = lambda e: play_channel()
-        
-        container_layout = QtWidgets.QVBoxLayout(poster_container)
-        container_layout.setContentsMargins(0, 0, 0, 0)
-        container_layout.setSpacing(0)
-        
-        poster = QtWidgets.QLabel()
-        poster.setFixedSize(200, 300)
-        poster.setAlignment(QtCore.Qt.AlignCenter)
-        poster.setStyleSheet("background-color: #1a1a1a; border-radius: 8px;")
-        
-        pix = load_pixmap_from_url(channel.get("thumbnail", ""), poster.size())
-        if pix.isNull():
-            pix = QtGui.QPixmap(poster.size())
-            pix.fill(QtGui.QColor(40, 40, 40))
-            painter = QtGui.QPainter(pix)
-            painter.setPen(QtGui.QColor(100, 100, 100))
-            painter.setFont(QtGui.QFont("Arial", 12))
-            painter.drawText(pix.rect(), QtCore.Qt.AlignCenter, "📺")
-            painter.end()
-        else:
-            scaled_pix = QtGui.QPixmap(poster.size())
-            scaled_pix.fill(QtGui.QColor(20, 20, 20))
-            painter = QtGui.QPainter(scaled_pix)
-            x = (scaled_pix.width() - pix.width()) // 2
-            y = (scaled_pix.height() - pix.height()) // 2
-            painter.drawPixmap(x, y, pix)
-            painter.end()
-            pix = scaled_pix
-        
-        poster.setPixmap(pix)
-        poster.setScaledContents(False)
-        container_layout.addWidget(poster)
+        card_widget.mousePressEvent = lambda e: play_channel()
 
+        # Just show channel name, no logo/image
         title_lbl = QtWidgets.QLabel(channel.get("title", ""))
         title_lbl.setWordWrap(True)
         title_lbl.setAlignment(QtCore.Qt.AlignCenter)
-        title_lbl.setStyleSheet("font-size: 14px; font-weight: 500; color: #ffffff; padding: 4px;")
+        title_lbl.setStyleSheet("font-size: 16px; font-weight: 600; color: #ffffff; padding: 8px;")
 
-        v.addWidget(poster_container, alignment=QtCore.Qt.AlignCenter)
         v.addWidget(title_lbl)
         
         return card_widget
@@ -1626,12 +1595,16 @@ class GamesPage(QtWidgets.QWidget):
         # Grid view page
         self.grid_page = QtWidgets.QWidget()
         layout = QtWidgets.QVBoxLayout(self.grid_page)
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(16)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(24)
 
-        title = QtWidgets.QLabel("SIA Games")
-        title.setStyleSheet("font-size: 20px; font-weight: 600;")
-        layout.addWidget(title)
+        title_row = QtWidgets.QHBoxLayout()
+        title_row.setContentsMargins(32, 32, 32, 16)
+        title = QtWidgets.QLabel("🎮 SIA Games")
+        title.setStyleSheet("font-size: 36px; font-weight: 700; color: #ffffff;")
+        title_row.addWidget(title)
+        title_row.addStretch()
+        layout.addLayout(title_row)
 
         scroll_area = QtWidgets.QScrollArea()
         scroll_area.setWidgetResizable(True)
@@ -1732,31 +1705,100 @@ class GamesPage(QtWidgets.QWidget):
 
         for idx, g in enumerate(games_list):
             r, c = divmod(idx, cols)
-            btn = QtWidgets.QPushButton(g["title"])
-            # Make games much larger
-            btn.setMinimumSize(300, 200)
-            btn.setCursor(QtCore.Qt.PointingHandCursor)
-            color = palette[idx % len(palette)]
-            btn.setStyleSheet(
-                f"""
-                QPushButton {{
-                    background-color: {color};
-                    border-radius: 16px;
-                    color: #000;
-                    font-weight: 700;
-                    font-size: 24px;
-                }}
-                QPushButton:hover {{
-                    background-color: #ffffff;
-                }}
-                """
-            )
-            btn.clicked.connect(lambda _=False, game=g: self.open_game(game))
-            self.grid_layout.addWidget(btn, r, c)
+            card = self._create_game_card(g, palette[idx % len(palette)])
+            self.grid_layout.addWidget(card, r, c)
         
         # Add column stretches for better layout
         for i in range(cols):
             self.grid_layout.setColumnStretch(i, 1)
+
+    def _create_game_card(self, game: dict, color: str) -> QtWidgets.QWidget:
+        """Create a portrait card for a game with image support."""
+        card_widget = QtWidgets.QWidget()
+        card_widget.setCursor(QtCore.Qt.PointingHandCursor)
+        card_widget.setStyleSheet(
+            """
+            QWidget {
+                background-color: transparent;
+                border-radius: 12px;
+            }
+            QWidget:hover {
+                background-color: rgba(255, 255, 255, 0.05);
+            }
+            """
+        )
+        v = QtWidgets.QVBoxLayout(card_widget)
+        v.setContentsMargins(12, 12, 12, 12)
+        v.setSpacing(12)
+
+        # Container for game image
+        image_container = QtWidgets.QWidget()
+        image_container.setFixedSize(280, 400)  # Portrait aspect ratio
+        image_container.setStyleSheet(f"background-color: {color}; border-radius: 10px;")
+        
+        def play_game():
+            self.open_game(game)
+        image_container.mousePressEvent = lambda e: play_game()
+        
+        container_layout = QtWidgets.QVBoxLayout(image_container)
+        container_layout.setContentsMargins(0, 0, 0, 0)
+        container_layout.setSpacing(0)
+        
+        # Game image (if available, otherwise use colored background)
+        game_image = QtWidgets.QLabel()
+        game_image.setFixedSize(280, 400)
+        game_image.setAlignment(QtCore.Qt.AlignCenter)
+        game_image.setStyleSheet(f"background-color: {color}; border-radius: 10px;")
+        
+        # Try to load image from game data or use placeholder
+        image_url = game.get("image", "") or game.get("thumbnail", "")
+        if image_url:
+            pix = load_pixmap_from_url(image_url, QtCore.QSize(280, 400))
+            if not pix.isNull():
+                # Scale maintaining aspect ratio
+                scaled_pix = QtGui.QPixmap(280, 400)
+                scaled_pix.fill(QtGui.QColor(color))
+                painter = QtGui.QPainter(scaled_pix)
+                x = (scaled_pix.width() - pix.width()) // 2
+                y = (scaled_pix.height() - pix.height()) // 2
+                painter.drawPixmap(x, y, pix)
+                painter.end()
+                game_image.setPixmap(scaled_pix)
+            else:
+                # Placeholder with game icon
+                pix = QtGui.QPixmap(280, 400)
+                pix.fill(QtGui.QColor(color))
+                painter = QtGui.QPainter(pix)
+                painter.setPen(QtGui.QColor("#000000"))
+                painter.setFont(QtGui.QFont("Arial", 24))
+                painter.drawText(pix.rect(), QtCore.Qt.AlignCenter, "🎮")
+                painter.end()
+                game_image.setPixmap(pix)
+        else:
+            # Placeholder with game icon
+            pix = QtGui.QPixmap(280, 400)
+            pix.fill(QtGui.QColor(color))
+            painter = QtGui.QPainter(pix)
+            painter.setPen(QtGui.QColor("#000000"))
+            painter.setFont(QtGui.QFont("Arial", 24))
+            painter.drawText(pix.rect(), QtCore.Qt.AlignCenter, "🎮")
+            painter.end()
+            game_image.setPixmap(pix)
+        
+        game_image.setScaledContents(False)
+        container_layout.addWidget(game_image)
+
+        # Game title
+        title_lbl = QtWidgets.QLabel(game.get("title", "Game"))
+        title_lbl.setWordWrap(True)
+        title_lbl.setAlignment(QtCore.Qt.AlignCenter)
+        title_lbl.setStyleSheet("font-size: 18px; font-weight: 600; color: #ffffff; padding: 8px;")
+
+        v.addWidget(image_container, alignment=QtCore.Qt.AlignCenter)
+        v.addWidget(title_lbl)
+        v.addStretch()
+        
+        return card_widget
 
     def open_game(self, game: dict):
         rel_path = game.get("path", "").lstrip("/")
@@ -1803,8 +1845,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 background-color: transparent;
                 color: #b3b3b3;
                 border-radius: 14px;
-                padding: 8px 16px;
+                padding: 12px 20px;
                 text-align: left;
+                font-size: 18px;
+                font-weight: 600;
             }
             QPushButton:hover {
                 color: #ffffff;
@@ -1815,8 +1859,20 @@ class MainWindow(QtWidgets.QMainWindow):
                 background-color: #1ed760;
             }
             QLabel#brandLabel {
-                font-size: 18px;
+                font-size: 22px;
                 font-weight: 700;
+            }
+            QPushButton#logoutBtn {
+                background-color: #e74c3c;
+                color: #ffffff;
+                border-radius: 14px;
+                padding: 12px 20px;
+                font-size: 18px;
+                font-weight: 600;
+                margin-top: 20px;
+            }
+            QPushButton#logoutBtn:hover {
+                background-color: #c0392b;
             }
             """
         )
@@ -1838,6 +1894,7 @@ class MainWindow(QtWidgets.QMainWindow):
         side_layout.addStretch(1)
 
         logout_btn = QtWidgets.QPushButton("Log out")
+        logout_btn.setObjectName("logoutBtn")
         logout_btn.clicked.connect(self.close)
         side_layout.addWidget(logout_btn)
 
