@@ -1,10 +1,9 @@
-<<<<<<< HEAD
 # Python Entertainment System (Flask)
 
 - Features:
 - Simple local email/password signup, login, logout (session-based, in-memory for dev)
 - Music search via YouTube Music (`ytmusicapi`) (embed playback)
-- Video search via YouTube (iframe embeds)
+- TV channel streaming via IPTV-org API (direct stream playback)
 - Playable HTML5 games (local + external embed)
 - Uses Flask with templates and static files
 
@@ -24,7 +23,6 @@ pip install -r requirements.txt
 
 ```
 SECRET_KEY=a-random-secret
-YOUTUBE_API_KEY=your_youtube_api_key   # optional; used by videos module
 ```
 
 4. Run locally:
@@ -44,13 +42,18 @@ Visit http://localhost:5000
 
 Note: Vercel Python runtimes can vary; alternatively deploy to DigitalOcean, Render, or Heroku for full WSGI support.
 
+## Configuration
+
+- No API keys required for video functionality! Videos use the free IPTV-org API (https://iptv-org.github.io/api/channels.json)
+- `config.py` — Optional YouTube API key (not required for videos, may be used for other features)
+
 ## Environment variables
-- `YOUTUBE_API_KEY` — YouTube Data API v3 key (optional; used by videos module)
 - `SECRET_KEY` — Flask secret key for sessions
 
 ## Notes
 -- The app currently uses a simple in-memory auth store for signup/login. This is only suitable for local development. For production replace with a proper auth backend (database, Supabase, Auth0, etc).
--- Music searching now uses `ytmusicapi` to query YouTube Music and returns YouTube embed URLs for playback.
+-- Music searching uses `ytmusicapi` to query YouTube Music and returns YouTube embed URLs for playback.
+-- Video/TV channel streaming uses IPTV-org API to access thousands of free TV channels from around the world. No API key required!
 
 ## Automate push to GitHub
 
@@ -86,9 +89,3 @@ Usage (bash):
 
 Security note:
 - The scripts rely on `git` for pushing. For non-interactive authentication prefer `gh auth login` (GitHub CLI) or configure a credential helper; avoid embedding PATs directly in URLs.
-
-
-=======
-# SIA-Project
-Entertainment System: Movies, Music and Games
->>>>>>> 7d59457139f07bba53c059d769b978dab1afecf0

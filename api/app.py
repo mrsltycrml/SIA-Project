@@ -1,9 +1,18 @@
 import os
+import sys
+from pathlib import Path
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_session import Session
-from modules import music, videos, games
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
+
+# Ensure the project root (which contains the `modules` package) is on sys.path,
+# regardless of whether this file is run from the project root or from the `api` folder.
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from modules import music, videos, games
 
 load_dotenv()
 
@@ -77,10 +86,21 @@ def music_page():
 def videos_page():
     user = current_user()
     q = request.args.get("q", "")
-    results = []
-    if q:
-        results = videos.search_videos(q)
-    return render_template("videos.html", user=user, query=q, results=results)
+    watch_id = request.args.get("watch")
+
+    # Get the catalog of movies (optionally filtered by search query)
+    results = videos.search_videos(q)
+
+    # Choose the movie to play
+    selected = None
+    if watch_id:
+        selected = next((m for m in results if m["id"] == watch_id), None)
+    if not selected and results:
+        selected = results[0]
+
+    return render_template(
+        "videos.html", user=user, query=q, results=results, selected=selected
+    )
 
 @app.route("/games")
 def games_page():
