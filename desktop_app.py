@@ -81,7 +81,7 @@ class AuthWindow(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("SIA - Login")
-        self.setFixedSize(420, 420)
+        self.setFixedSize(600, 700)
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
 
         shadow = QtWidgets.QGraphicsDropShadowEffect(self)
@@ -99,12 +99,12 @@ class AuthWindow(QtWidgets.QWidget):
         self.stack.addWidget(self.signup_page)
 
         layout = QtWidgets.QVBoxLayout(card)
-        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setContentsMargins(48, 48, 48, 48)
         layout.addWidget(self.stack)
 
         outer = QtWidgets.QVBoxLayout(self)
-        outer.setContentsMargins(40, 40, 40, 40)
-        outer.addWidget(card)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.addWidget(card, alignment=QtCore.Qt.AlignCenter)
 
         self.setStyleSheet(
             """
@@ -115,14 +115,17 @@ class AuthWindow(QtWidgets.QWidget):
             }
             QFrame#authCard {
                 background-color: #181818;
-                border-radius: 18px;
+                border-radius: 24px;
+                min-width: 500px;
+                min-height: 600px;
             }
             QLineEdit {
                 background-color: #202020;
                 border: 1px solid #333;
                 border-radius: 14px;
-                padding: 10px 14px;
+                padding: 14px 18px;
                 color: #f5f5f5;
+                font-size: 15px;
                 selection-background-color: #1ed760;
             }
             QLineEdit:focus {
@@ -130,8 +133,9 @@ class AuthWindow(QtWidgets.QWidget):
             }
             QPushButton {
                 border-radius: 18px;
-                padding: 10px 18px;
+                padding: 14px 24px;
                 font-weight: 600;
+                font-size: 15px;
             }
             QPushButton#primaryBtn {
                 background-color: #1ed760;
@@ -148,12 +152,14 @@ class AuthWindow(QtWidgets.QWidget):
                 color: #ffffff;
             }
             QLabel#titleLabel {
-                font-size: 22px;
+                font-size: 32px;
                 font-weight: 700;
+                padding: 8px 0;
             }
             QLabel#subtitleLabel {
                 color: #aaaaaa;
-                font-size: 11px;
+                font-size: 14px;
+                padding: 4px 0;
             }
             """
         )
@@ -163,12 +169,15 @@ class AuthWindow(QtWidgets.QWidget):
     def _build_login_page(self) -> QtWidgets.QWidget:
         w = QtWidgets.QWidget()
         v = QtWidgets.QVBoxLayout(w)
-        v.setSpacing(16)
+        v.setSpacing(20)
+        v.setContentsMargins(0, 20, 0, 20)
 
         title = QtWidgets.QLabel("Welcome back")
         title.setObjectName("titleLabel")
+        title.setAlignment(QtCore.Qt.AlignCenter)
         subtitle = QtWidgets.QLabel("Log in to continue to your dashboard.")
         subtitle.setObjectName("subtitleLabel")
+        subtitle.setAlignment(QtCore.Qt.AlignCenter)
 
         self.login_email = QtWidgets.QLineEdit()
         self.login_email.setPlaceholderText("Email")
@@ -184,26 +193,31 @@ class AuthWindow(QtWidgets.QWidget):
         switch_btn.setObjectName("ghostBtn")
         switch_btn.clicked.connect(lambda: self.stack.setCurrentIndex(1))
 
+        v.addStretch(1)
         v.addWidget(title)
         v.addWidget(subtitle)
-        v.addSpacing(8)
+        v.addSpacing(32)
         v.addWidget(self.login_email)
         v.addWidget(self.login_password)
-        v.addSpacing(12)
+        v.addSpacing(20)
         v.addWidget(login_btn)
-        v.addStretch(1)
+        v.addSpacing(16)
         v.addWidget(switch_btn, alignment=QtCore.Qt.AlignCenter)
+        v.addStretch(1)
         return w
 
     def _build_signup_page(self) -> QtWidgets.QWidget:
         w = QtWidgets.QWidget()
         v = QtWidgets.QVBoxLayout(w)
-        v.setSpacing(16)
+        v.setSpacing(20)
+        v.setContentsMargins(0, 20, 0, 20)
 
         title = QtWidgets.QLabel("Create account")
         title.setObjectName("titleLabel")
+        title.setAlignment(QtCore.Qt.AlignCenter)
         subtitle = QtWidgets.QLabel("One account for music, videos and games.")
         subtitle.setObjectName("subtitleLabel")
+        subtitle.setAlignment(QtCore.Qt.AlignCenter)
 
         self.signup_email = QtWidgets.QLineEdit()
         self.signup_email.setPlaceholderText("Email")
@@ -219,15 +233,17 @@ class AuthWindow(QtWidgets.QWidget):
         switch_btn.setObjectName("ghostBtn")
         switch_btn.clicked.connect(lambda: self.stack.setCurrentIndex(0))
 
+        v.addStretch(1)
         v.addWidget(title)
         v.addWidget(subtitle)
-        v.addSpacing(8)
+        v.addSpacing(32)
         v.addWidget(self.signup_email)
         v.addWidget(self.signup_password)
-        v.addSpacing(12)
+        v.addSpacing(20)
         v.addWidget(signup_btn)
-        v.addStretch(1)
+        v.addSpacing(16)
         v.addWidget(switch_btn, alignment=QtCore.Qt.AlignCenter)
+        v.addStretch(1)
         return w
 
     # --- handlers --- #
@@ -1031,7 +1047,11 @@ class VideosPage(QtWidgets.QWidget):
         self.current_movie = None
         self.all_channels = []  # Store all channels for discovery
         # Load channels on startup (empty query shows all)
-        self.refresh_grid()
+        try:
+            self.refresh_grid()
+        except Exception as e:
+            print(f"[VideosPage] Error loading channels on startup: {e}")
+            self.status_label.setText("Error loading channels. Please try again.")
     
     def _load_filter_options(self):
         """Load country and category options for filters."""
@@ -1160,8 +1180,8 @@ class VideosPage(QtWidgets.QWidget):
         nav_layout.addStretch()
         
         # Fullscreen button
-        fullscreen_btn = QtWidgets.QPushButton("⛶ Fullscreen")
-        fullscreen_btn.setStyleSheet("""
+        self.fullscreen_btn = QtWidgets.QPushButton("⛶ Fullscreen")
+        self.fullscreen_btn.setStyleSheet("""
             QPushButton {
                 background-color: rgba(255, 255, 255, 0.1);
                 color: #ffffff;
@@ -1173,15 +1193,17 @@ class VideosPage(QtWidgets.QWidget):
                 background-color: rgba(255, 255, 255, 0.2);
             }
         """)
-        nav_layout.addWidget(fullscreen_btn)
+        self.fullscreen_btn.clicked.connect(self.toggle_fullscreen)
+        nav_layout.addWidget(self.fullscreen_btn)
+        self.is_fullscreen = False
         
         main_layout.addWidget(nav_bar)
         
         # Video player container
-        player_container = QtWidgets.QWidget()
-        player_layout = QtWidgets.QVBoxLayout(player_container)
-        player_layout.setContentsMargins(0, 0, 0, 0)
-        player_layout.setSpacing(0)
+        self.player_container = QtWidgets.QWidget()
+        self.player_layout = QtWidgets.QVBoxLayout(self.player_container)
+        self.player_layout.setContentsMargins(0, 0, 0, 0)
+        self.player_layout.setSpacing(0)
         
         # Initialize VLC if available (preferred for IPTV streams)
         self.vlc_instance = None
@@ -1236,11 +1258,11 @@ class VideosPage(QtWidgets.QWidget):
         
         # Add appropriate widget to layout
         if self.use_vlc and self.vlc_widget:
-            player_layout.addWidget(self.vlc_widget, 1)
+            self.player_layout.addWidget(self.vlc_widget, 1)
         else:
-            player_layout.addWidget(self.video_player, 1)
+            self.player_layout.addWidget(self.video_player, 1)
         
-        main_layout.addWidget(player_container, 3)  # Give player 3x space
+        main_layout.addWidget(self.player_container, 3)  # Give player 3x space
         
         # Bottom section with channel info and related channels (single scroll)
         bottom_scroll = QtWidgets.QScrollArea()
@@ -1300,16 +1322,125 @@ class VideosPage(QtWidgets.QWidget):
             }
         """)
         related_scroll.setWidget(self.related_widget)
-        related_scroll.setFixedHeight(360)  # Fixed height to prevent vertical scroll
+        related_scroll.setFixedHeight(200)  # Fixed height to prevent vertical scroll (adjusted for logos)
         
         bottom_layout.addWidget(related_scroll)
         bottom_scroll.setWidget(bottom_section)
         main_layout.addWidget(bottom_scroll, 1)  # Give bottom section 1x space
         
+        # Store references for fullscreen functionality (after bottom_scroll is created)
+        self.nav_bar = nav_bar
+        self.bottom_scroll = bottom_scroll
+        self.player_page = page
+        self.fullscreen_window = None
+        
         return page
+    
+    def toggle_fullscreen(self):
+        """Toggle fullscreen mode for the video player only."""
+        if not self.is_fullscreen:
+            # Enter fullscreen - create a separate fullscreen window
+            self.is_fullscreen = True
+            self.fullscreen_btn.setText("⛶ Exit Fullscreen")
+            
+            # Create fullscreen window
+            self.fullscreen_window = QtWidgets.QWidget()
+            self.fullscreen_window.setWindowFlags(
+                QtCore.Qt.Window | 
+                QtCore.Qt.FramelessWindowHint | 
+                QtCore.Qt.WindowStaysOnTopHint
+            )
+            self.fullscreen_window.setStyleSheet("background-color: #000000;")
+            
+            # Get the video player widget
+            if self.use_vlc and self.vlc_widget:
+                video_widget = self.vlc_widget
+            else:
+                if not hasattr(self, 'video_player'):
+                    # Fallback if video_player doesn't exist
+                    self.is_fullscreen = False
+                    return
+                video_widget = self.video_player
+            
+            # Remove widget from current layout properly
+            self.player_layout.removeWidget(video_widget)
+            video_widget.setParent(None)
+            
+            # Create layout for fullscreen window
+            fullscreen_layout = QtWidgets.QVBoxLayout(self.fullscreen_window)
+            fullscreen_layout.setContentsMargins(0, 0, 0, 0)
+            fullscreen_layout.addWidget(video_widget)
+            
+            # Add exit button overlay
+            exit_btn = QtWidgets.QPushButton("✕ Exit Fullscreen", self.fullscreen_window)
+            exit_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: rgba(0, 0, 0, 0.7);
+                    color: #ffffff;
+                    border-radius: 8px;
+                    padding: 10px 20px;
+                    font-size: 16px;
+                }
+                QPushButton:hover {
+                    background-color: rgba(0, 0, 0, 0.9);
+                }
+            """)
+            exit_btn.clicked.connect(self.toggle_fullscreen)
+            exit_btn.setGeometry(20, 20, 180, 40)  # Position in top-left
+            
+            # Show fullscreen window
+            self.fullscreen_window.showFullScreen()
+            
+            # Reconnect VLC if using VLC
+            if self.use_vlc and self.vlc_media_player:
+                if sys.platform == "win32":
+                    self.vlc_media_player.set_hwnd(int(video_widget.winId()))
+                elif sys.platform == "linux":
+                    self.vlc_media_player.set_xwindow(video_widget.winId())
+                elif sys.platform == "darwin":
+                    self.vlc_media_player.set_nsobject(int(video_widget.winId()))
+        else:
+            # Exit fullscreen - restore widget to original location
+            self.is_fullscreen = False
+            self.fullscreen_btn.setText("⛶ Fullscreen")
+            
+            if self.fullscreen_window:
+                # Get the video widget back
+                if self.use_vlc and self.vlc_widget:
+                    video_widget = self.vlc_widget
+                else:
+                    if not hasattr(self, 'video_player'):
+                        return
+                    video_widget = self.video_player
+                
+                # Remove from fullscreen window layout
+                fullscreen_layout = self.fullscreen_window.layout()
+                if fullscreen_layout:
+                    fullscreen_layout.removeWidget(video_widget)
+                video_widget.setParent(None)
+                
+                # Add back to player container
+                self.player_layout.addWidget(video_widget, 1)
+                
+                # Reconnect VLC if using VLC
+                if self.use_vlc and self.vlc_media_player:
+                    if sys.platform == "win32":
+                        self.vlc_media_player.set_hwnd(int(video_widget.winId()))
+                    elif sys.platform == "linux":
+                        self.vlc_media_player.set_xwindow(video_widget.winId())
+                    elif sys.platform == "darwin":
+                        self.vlc_media_player.set_nsobject(int(video_widget.winId()))
+                
+                # Close and destroy fullscreen window
+                self.fullscreen_window.close()
+                self.fullscreen_window.deleteLater()
+                self.fullscreen_window = None
     
     def show_grid(self):
         """Switch back to grid view."""
+        # Exit fullscreen if active
+        if self.is_fullscreen:
+            self.toggle_fullscreen()
         # Stop VLC playback if active
         if self.use_vlc and self.vlc_media_player:
             try:
@@ -1542,36 +1673,87 @@ class VideosPage(QtWidgets.QWidget):
         return card_widget
     
     def _create_related_channel_card(self, channel: dict) -> QtWidgets.QWidget:
-        """Create a smaller channel card for the related channels section (text only, no logo)."""
+        """Create a smaller channel card for the related channels section with logo."""
         card_widget = QtWidgets.QWidget()
         card_widget.setCursor(QtCore.Qt.PointingHandCursor)
         card_widget.setStyleSheet(
             """
             QWidget {
-                background-color: rgba(255, 255, 255, 0.1);
+                background-color: transparent;
                 border-radius: 8px;
-                border: 1px solid rgba(255, 255, 255, 0.2);
             }
             QWidget:hover {
-                background-color: rgba(255, 255, 255, 0.2);
-                border-color: #1ed760;
+                background-color: rgba(255, 255, 255, 0.05);
             }
             """
         )
         v = QtWidgets.QVBoxLayout(card_widget)
-        v.setContentsMargins(16, 16, 16, 16)
+        v.setContentsMargins(8, 8, 8, 8)
         v.setSpacing(8)
         
         def play_channel():
             self.show_player(channel)
         card_widget.mousePressEvent = lambda e: play_channel()
 
-        # Just show channel name, no logo/image
+        # Container for channel logo/image
+        logo_container = QtWidgets.QWidget()
+        logo_container.setFixedSize(180, 120)
+        logo_container.setStyleSheet("background-color: #1a1a1a; border-radius: 8px;")
+        
+        container_layout = QtWidgets.QVBoxLayout(logo_container)
+        container_layout.setContentsMargins(0, 0, 0, 0)
+        container_layout.setSpacing(0)
+        
+        logo_label = QtWidgets.QLabel()
+        logo_label.setFixedSize(180, 120)
+        logo_label.setAlignment(QtCore.Qt.AlignCenter)
+        logo_label.setStyleSheet("background-color: #1a1a1a; border-radius: 8px;")
+        
+        # Load channel logo/thumbnail
+        thumbnail_url = channel.get("thumbnail", "") or channel.get("logo", "")
+        if thumbnail_url:
+            pix = load_pixmap_from_url(thumbnail_url, QtCore.QSize(180, 120))
+            if not pix.isNull():
+                # Scale maintaining aspect ratio
+                scaled_pix = QtGui.QPixmap(180, 120)
+                scaled_pix.fill(QtGui.QColor(26, 26, 26))
+                painter = QtGui.QPainter(scaled_pix)
+                x = (scaled_pix.width() - pix.width()) // 2
+                y = (scaled_pix.height() - pix.height()) // 2
+                painter.drawPixmap(x, y, pix)
+                painter.end()
+                logo_label.setPixmap(scaled_pix)
+            else:
+                # Placeholder
+                pix = QtGui.QPixmap(180, 120)
+                pix.fill(QtGui.QColor(40, 40, 40))
+                painter = QtGui.QPainter(pix)
+                painter.setPen(QtGui.QColor(100, 100, 100))
+                painter.setFont(QtGui.QFont("Arial", 10))
+                painter.drawText(pix.rect(), QtCore.Qt.AlignCenter, "📺")
+                painter.end()
+                logo_label.setPixmap(pix)
+        else:
+            # Placeholder
+            pix = QtGui.QPixmap(180, 120)
+            pix.fill(QtGui.QColor(40, 40, 40))
+            painter = QtGui.QPainter(pix)
+            painter.setPen(QtGui.QColor(100, 100, 100))
+            painter.setFont(QtGui.QFont("Arial", 10))
+            painter.drawText(pix.rect(), QtCore.Qt.AlignCenter, "📺")
+            painter.end()
+            logo_label.setPixmap(pix)
+        
+        logo_label.setScaledContents(False)
+        container_layout.addWidget(logo_label)
+
+        # Channel name
         title_lbl = QtWidgets.QLabel(channel.get("title", ""))
         title_lbl.setWordWrap(True)
         title_lbl.setAlignment(QtCore.Qt.AlignCenter)
-        title_lbl.setStyleSheet("font-size: 16px; font-weight: 600; color: #ffffff; padding: 8px;")
+        title_lbl.setStyleSheet("font-size: 14px; font-weight: 600; color: #ffffff; padding: 4px;")
 
+        v.addWidget(logo_container, alignment=QtCore.Qt.AlignCenter)
         v.addWidget(title_lbl)
         
         return card_widget
@@ -1720,7 +1902,7 @@ class GamesPage(QtWidgets.QWidget):
             """
             QWidget {
                 background-color: transparent;
-                border-radius: 12px;
+                border-radius: 20px;
             }
             QWidget:hover {
                 background-color: rgba(255, 255, 255, 0.05);
@@ -1734,7 +1916,7 @@ class GamesPage(QtWidgets.QWidget):
         # Container for game image
         image_container = QtWidgets.QWidget()
         image_container.setFixedSize(280, 400)  # Portrait aspect ratio
-        image_container.setStyleSheet(f"background-color: {color}; border-radius: 10px;")
+        image_container.setStyleSheet(f"background-color: {color}; border-radius: 20px;")
         
         def play_game():
             self.open_game(game)
@@ -1748,7 +1930,7 @@ class GamesPage(QtWidgets.QWidget):
         game_image = QtWidgets.QLabel()
         game_image.setFixedSize(280, 400)
         game_image.setAlignment(QtCore.Qt.AlignCenter)
-        game_image.setStyleSheet(f"background-color: {color}; border-radius: 10px;")
+        game_image.setStyleSheet(f"background-color: {color}; border-radius: 20px;")
         
         # Try to load image from game data or use placeholder
         image_url = game.get("image", "") or game.get("thumbnail", "")
@@ -1931,9 +2113,19 @@ def main():
     auth = AuthWindow()
 
     def on_auth(email: str):
-        main_win = MainWindow(email)
-        main_win.show()
-        auth.close()
+        try:
+            auth.hide()  # Hide first before creating main window
+            main_win = MainWindow(email)
+            main_win.show()
+            main_win.raise_()  # Bring to front
+            main_win.activateWindow()  # Activate window
+            auth.close()
+        except Exception as e:
+            print(f"[main] Error creating main window: {e}")
+            import traceback
+            traceback.print_exc()
+            QtWidgets.QMessageBox.critical(auth, "Error", f"Failed to start application: {str(e)}")
+            auth.show()  # Show auth window again if error
 
     auth.authenticated.connect(on_auth)
     # Show login / signup in fullscreen for an immersive modern experience
