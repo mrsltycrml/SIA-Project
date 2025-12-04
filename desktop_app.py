@@ -23,21 +23,10 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from modules import music, videos, games  # type: ignore
+from modules import music, videos, games, database, auth  # type: ignore
 
-try:
-    from werkzeug.security import generate_password_hash, check_password_hash
-except Exception:  # Fallback: very simple (insecure) hashing if werkzeug is missing
-    import hashlib
-
-    def generate_password_hash(pw: str) -> str:
-        return hashlib.sha256(pw.encode("utf-8")).hexdigest()
-
-    def check_password_hash(h: str, pw: str) -> bool:
-        return h == generate_password_hash(pw)
-
-
-USERS = {}
+# Initialize database on startup
+database.init_db()
 
 
 # -------------------------- Shared UI helpers --------------------------- #
@@ -249,19 +238,48 @@ class AuthWindow(QtWidgets.QWidget):
         if not email or not password:
             QtWidgets.QMessageBox.warning(self, "Signup", "Please fill in all fields.")
             return
-        if email in USERS:
+        
+        # Check if user already exists in database
+        existing_user = database.get_user_by_email(email)
+        if existing_user:
             QtWidgets.QMessageBox.warning(self, "Signup", "User already exists.")
             return
-        USERS[email] = generate_password_hash(password)
-        QtWidgets.QMessageBox.information(self, "Signup", "Account created. You can log in now.")
-        self.stack.setCurrentIndex(0)
+        
+        try:
+            # Hash password using bcrypt
+            password_hash = auth.hash_password(password)
+            password_hash_str = password_hash.decode('utf-8')
+            
+            # Create user in database
+            user = database.create_user(email, password_hash_str)
+            if user:
+                QtWidgets.QMessageBox.information(self, "Signup", "Account created. You can log in now.")
+                self.stack.setCurrentIndex(0)  # Switch to login page
+            else:
+                QtWidgets.QMessageBox.warning(self, "Signup", "Error creating account. Please try again.")
+        except Exception as e:
+            QtWidgets.QMessageBox.warning(self, "Signup", f"Error creating account: {str(e)}")
 
     def handle_login(self):
         email = self.login_email.text().strip().lower()
         password = self.login_password.text()
-        if email not in USERS or not check_password_hash(USERS[email], password):
+        
+        if not email or not password:
+            QtWidgets.QMessageBox.warning(self, "Login", "Please fill in all fields.")
+            return
+        
+        # Query database for user
+        user = database.get_user_by_email(email)
+        
+        if not user:
             QtWidgets.QMessageBox.warning(self, "Login", "Invalid email or password.")
             return
+        
+        # Verify password against stored hash
+        if not auth.verify_password(password, user["password_hash"]):
+            QtWidgets.QMessageBox.warning(self, "Login", "Invalid email or password.")
+            return
+        
         self.authenticated.emit(email)
 
 

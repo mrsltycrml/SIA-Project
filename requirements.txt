@@ -7,6 +7,7 @@ ytmusicapi>=0.20
 PyQt5>=5.15
 PyQtWebEngine>=5.15
 python-vlc>=3.0.20123
+bcrypt>=4.0.0
 
 
 
