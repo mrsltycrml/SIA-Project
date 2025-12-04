@@ -14,17 +14,21 @@
       {% for t in results %}
         <div class="col-md-6">
           <div class="card h-100">
+            {% if t.image %}
+              <img src="{{ t.image }}" class="card-img-top" alt="Album cover for {{ t.name }}">
+            {% endif %}
             <div class="card-body">
               <h5 class="card-title">{{ t.name }}</h5>
-              <h6 class="card-subtitle mb-2 text-muted">{{ t.artists }}</h6>
+              <h6 class="card-subtitle mb-2 text-muted">{{ t.artists }} — {{ t.album }}</h6>
               <div class="mt-2">
                 {% if t.preview_url %}
                   <audio controls src="{{ t.preview_url }}"></audio>
-                {% elif t.embed_url %}
-                  <div class="ratio ratio-16x9">
-                    <iframe src="{{ t.embed_url }}" frameborder="0" allowfullscreen></iframe>
-                  </div>
+                {% else %}
+                  <span class="text-muted">No preview available</span>
                 {% endif %}
+              </div>
+              <div class="mt-2">
+                <a href="{{ t.external_url }}" class="btn btn-success btn-sm" target="_blank">Open in Spotify</a>
               </div>
             </div>
           </div>

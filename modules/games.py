@@ -20,13 +20,7 @@ def _walk_games_dir() -> List[Dict]:
                 "path": f"/static/games/{name}/index.html",
                 "local": True
             })
-    # add an example external embed
-    games.append({
-        "slug": "space-invaders-embed",
-        "title": "Space Invaders (Itch.io embed)",
-        "embed_url": "https://itch.io/embed/123456?linkback=true",
-        "local": False
-    })
+    # Remove all example external embeds
     return games
 
 def list_games() -> List[Dict]:
@@ -37,5 +31,6 @@ def get_game(slug: str) -> Dict:
         if g["slug"] == slug:
             return g
     return {}
+
 
 

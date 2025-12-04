@@ -7,9 +7,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 load_dotenv()
 
-# Simple config from env (YouTube Data API still optional for videos module)
-YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY")
-
 # Simple in-memory user store for development (email -> password_hash)
 USERS = {}
 
@@ -82,7 +79,7 @@ def videos_page():
     q = request.args.get("q", "")
     results = []
     if q:
-        results = videos.search_videos(q, YOUTUBE_API_KEY)
+        results = videos.search_videos(q)
     return render_template("videos.html", user=user, query=q, results=results)
 
 @app.route("/games")

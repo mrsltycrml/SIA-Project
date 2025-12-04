@@ -1,53 +1,48 @@
-"""
-Music module: search and return YouTube Music / YouTube results using `ytmusicapi`.
-This replaces Spotify-based search. Each result includes:
-- id: videoId
-- name: track title
-- artists: comma-separated artist names (best-effort)
-- preview_url: always None (YouTube doesn't expose 30s preview mp3s)
-- embed_url: YouTube embed URL usable in an iframe
-
-Notes:
-- Uses anonymous `YTMusic()` which works for public search. For user-scoped requests,
-  `YTMusic` can be initialized with authenticated headers (not done here).
-"""
-import os
 from typing import List, Dict
 
-from ytmusicapi import YTMusic
+import requests
 
 
 def search_tracks(query: str, limit: int = 12) -> List[Dict]:
     """
-    Perform a YouTube Music search and return a list of simplified track dicts.
+    Search tracks using the public Deezer API.
+
+    Returns a list of dicts shaped for the music template:
+    - id: Deezer track id
+    - name: track title
+    - artists: artist name(s)
+    - album: album title
+    - image: album cover URL
+    - preview_url: 30s MP3 preview (can be used in <audio>)
+    - external_url: link to open track on Deezer
     """
     try:
-        ytmusic = YTMusic()
-        items = ytmusic.search(query, filter="songs", limit=limit)
+        resp = requests.get(
+            "https://api.deezer.com/search",
+            params={"q": query, "limit": limit},
+            timeout=5,
+        )
+        resp.raise_for_status()
+        data = resp.json()
     except Exception as exc:
-        # network or library error -> return empty list
-        print(f"[music.search_tracks] YTMusic search failed: {exc}")
-        items = []
+        print(f"[music.search_tracks] Deezer search failed: {exc}")
+        return []
 
-    results: List[Dict] = []
-    for it in items:
-        video_id = it.get("videoId") or it.get("videoId", "")
-        # artists may be a list of dicts or a single string depending on result shape
-        artists_field = it.get("artists") or it.get("artist") or []
-        if isinstance(artists_field, list):
-            artists = ", ".join(a.get("name") for a in artists_field if a.get("name"))
-        else:
-            artists = str(artists_field)
+    items = data.get("data", []) or []
+    tracks: List[Dict] = []
+    for item in items:
+        artist = item.get("artist") or {}
+        album = item.get("album") or {}
+        tracks.append(
+            {
+                "id": item.get("id"),
+                "name": item.get("title"),
+                "artists": artist.get("name", ""),
+                "album": album.get("title", ""),
+                "image": album.get("cover_medium") or album.get("cover"),
+                "preview_url": item.get("preview"),  # 30s MP3
+                "external_url": item.get("link"),
+            }
+        )
 
-        results.append({
-            "id": video_id,
-            "name": it.get("title"),
-            "artists": artists,
-            "preview_url": None,
-            "embed_url": f"https://www.youtube.com/embed/{video_id}" if video_id else None
-        })
-
-    return results
-
-
-
+    return tracks
